@@ -53,10 +53,10 @@ PrimaryGeneratorAction::PrimaryGeneratorAction()
   // default particle kinematic
   //
   G4ParticleDefinition* particleDefinition 
-    = G4ParticleTable::GetParticleTable()->FindParticle("e-");
+    = G4ParticleTable::GetParticleTable()->FindParticle("proton");
   fParticleGun->SetParticleDefinition(particleDefinition);
   fParticleGun->SetParticleMomentumDirection(G4ThreeVector(0.,0.,1.));
-  fParticleGun->SetParticleEnergy(50.*MeV);
+  fParticleGun->SetParticleEnergy(200.*MeV);
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -78,7 +78,7 @@ void PrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
   //
   G4double worldZHalfLength = 0;
   G4LogicalVolume* worlLV
-    = G4LogicalVolumeStore::GetInstance()->GetVolume("World");
+    = G4LogicalVolumeStore::GetInstance()->GetVolume("WorldLV");
   G4Box* worldBox = 0;
   if ( worlLV) worldBox = dynamic_cast< G4Box*>(worlLV->GetSolid()); 
   if ( worldBox ) {

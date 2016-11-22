@@ -146,14 +146,14 @@ G4VPhysicalVolume* DetectorConstruction::DefineVolumes()
   // World
   //
   G4VSolid* worldS 
-    = new G4Box("World",           // its name
+    = new G4Box("WorldS",           // its name
                  worldSizeXYZ/2, worldSizeXYZ/2, worldSizeXYZ/2); // its size
                          
   G4LogicalVolume* worldLV
     = new G4LogicalVolume(
                  worldS,           // its solid
                  airMaterial,      // its material
-                 "World");         // its name
+                 "WorldLV");       // its name
                                    
   //G4VPhysicalVolume* worldPV
   fWorldPV
@@ -161,7 +161,7 @@ G4VPhysicalVolume* DetectorConstruction::DefineVolumes()
                  0,                // no rotation
                  G4ThreeVector(),  // at (0,0,0)
                  worldLV,          // its logical volume                         
-                 "World",          // its name
+                 "WorldPV",        // its name
                  0,                // its mother  volume
                  false,            // no boolean operation
                  0,                // copy number
@@ -186,7 +186,7 @@ G4VPhysicalVolume* DetectorConstruction::DefineVolumes()
                  0,                // no rotation
                  G4ThreeVector(),  // at (0,0,0)
                  waterLV,          // its logical volume                         
-                 "WaterP",    // its name
+                 "WaterPV",    // its name
                  worldLV,          // its mother  volume
                  false,            // no boolean operation
                  0,                // copy number
