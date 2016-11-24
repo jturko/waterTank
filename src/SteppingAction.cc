@@ -38,6 +38,7 @@
 #include "G4SystemOfUnits.hh"
 
 #include "G4Step.hh"
+#include "G4Track.hh"
 #include "G4RunManager.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -85,7 +86,10 @@ void SteppingAction::UserSteppingAction(const G4Step* step)
   else if(particleName == "O16")     particle = 8; 
   else particle = 0; 
 
-  if( firstVolume == fDetConstruction->GetWaterPV() && secondVolume == fDetConstruction->GetWorldPV() ) {
+  G4Track* track = step->GetTrack();
+  if(particleName == "e-") track->SetTrackStatus(fKillTrackAndSecondaries);
+
+  if( firstVolume == fDetConstruction->GetTargetPV() && secondVolume == fDetConstruction->GetWorldPV() ) {
     G4AnalysisManager* analysisManager = G4AnalysisManager::Instance();
     analysisManager->FillNtupleDColumn(0, ekin/MeV);
     analysisManager->FillNtupleDColumn(1, time/ms);

@@ -64,7 +64,7 @@ class DetectorConstruction : public G4VUserDetectorConstruction
     // get methods
     //
     const G4VPhysicalVolume* GetWorldPV() const;
-    const G4VPhysicalVolume* GetWaterPV() const;
+    const G4VPhysicalVolume* GetTargetPV() const;
      
   private:
     // methods
@@ -77,8 +77,8 @@ class DetectorConstruction : public G4VUserDetectorConstruction
     static G4ThreadLocal G4GlobalMagFieldMessenger*  fMagFieldMessenger; 
                                       // magnetic field messenger
      
-    G4VPhysicalVolume*   fWorldPV; // the absorber physical volume
-    G4VPhysicalVolume*   fWaterPV;      // the gap physical volume
+    G4VPhysicalVolume*   fWorldPV;  // the world physical volume
+    G4VPhysicalVolume*   fTargetPV; // the target physical volume
     
     G4bool  fCheckOverlaps; // option to activate checking of volumes overlaps
 };
@@ -89,8 +89,8 @@ inline const G4VPhysicalVolume* DetectorConstruction::GetWorldPV() const {
   return fWorldPV; 
 }
 
-inline const G4VPhysicalVolume* DetectorConstruction::GetWaterPV() const  { 
-  return fWaterPV; 
+inline const G4VPhysicalVolume* DetectorConstruction::GetTargetPV() const  { 
+  return fTargetPV; 
 }
      
 

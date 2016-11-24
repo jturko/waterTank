@@ -30,6 +30,8 @@
 
 #include "DetectorConstruction.hh"
 
+#include "G4Isotope.hh"
+#include "G4Element.hh"
 #include "G4Material.hh"
 #include "G4NistManager.hh"
 
@@ -92,10 +94,23 @@ void DetectorConstruction::DefineMaterials()
   nistManager->FindOrBuildMaterial("G4_WATER");
   nistManager->FindOrBuildMaterial("G4_AIR");
   
+  G4String name ,symbol;
+  G4int n, z, ncomponents; 
+  G4double a, density, fractionmass;
+  
+  G4Isotope * Gd156_iso = new G4Isotope(name="Gd156_iso",z=64,n=156,a=155.922*g/mole);
+  G4Element * Gd156_el = new G4Element(name="Gd156_el",symbol="Gd156",ncomponents=1);
+  Gd156_el->AddIsotope(Gd156_iso,fractionmass=100.*perCent);
+  G4Material * Gd156_mat = new G4Material(name="Gd156_mat",density=7.90*g/cm3,ncomponents=1);
+  Gd156_mat->AddElement(Gd156_el,fractionmass=100.*perCent);
+
+  G4Isotope * Eu152_iso = new G4Isotope(name="Eu152_iso",z=63,n=152,a=152.*g/mole);
+  G4Element * Eu152_el = new G4Element(name="Eu152_el",symbol="Eu152",ncomponents=1);
+  Eu152_el->AddIsotope(Eu152_iso,fractionmass=100.*perCent);
+  G4Material * Eu152_mat = new G4Material(name="Eu152_mat",density=7.90*g/cm3,ncomponents=1);
+  Eu152_mat->AddElement(Eu152_el,fractionmass=100.*perCent);
+  
   // Liquid argon material
-  G4double a;  // mass of a mole;
-  G4double z;  // z=mean number of protons;  
-  G4double density; 
   //new G4Material("liquidArgon", z=18., a= 39.95*g/mole, density= 1.390*g/cm3);
          // The argon by NIST Manager is a gas with a different density
 
@@ -124,18 +139,23 @@ G4VPhysicalVolume* DetectorConstruction::DefineVolumes()
   
   G4double waterSizeXY = 10.*cm;
   G4double waterSizeZ = 20.*cm;
-  G4double worldSizeXYZ = 1.2 * waterSizeZ;
   
+  G4double gdSizeXY = 5.*mm;
+  G4double gdSizeZ = 100.*um;
+  
+  //G4double worldSizeXYZ = 1.2 * waterSizeZ;
+  G4double worldSizeXYZ = 1.2 * gdSizeXY;
+
   // Get materials
   //G4Material* defaultMaterial = G4Material::GetMaterial("Galactic");
   //G4Material* absorberMaterial = G4Material::GetMaterial("G4_Pb");
   //G4Material* gapMaterial = G4Material::GetMaterial("liquidArgon");
   G4Material* airMaterial = G4Material::GetMaterial("G4_AIR");
   G4Material* waterMaterial = G4Material::GetMaterial("G4_WATER");
-  
+  G4Material* gdMaterial = G4Material::GetMaterial("Gd156_mat");
 
   //if ( ! defaultMaterial || ! absorberMaterial || ! gapMaterial ) {
-  if ( ! airMaterial || ! waterMaterial ) {
+  if ( ! airMaterial || ! waterMaterial || ! gdMaterial ) {
     G4ExceptionDescription msg;
     msg << "Cannot retrieve materials already defined."; 
     G4Exception("DetectorConstruction::DefineVolumes()",
@@ -180,18 +200,32 @@ G4VPhysicalVolume* DetectorConstruction::DefineVolumes()
                  waterMaterial,  // its material
                  "WaterLV");   // its name
                                    
+  //                               
+  // Gd156 target
+  //  
+  G4VSolid* gdS
+    = new G4Box("gdS",     // its name
+                 gdSizeXY/2, gdSizeXY/2, gdSizeZ/2); // its size
+                         
+  G4LogicalVolume* gdLV
+    = new G4LogicalVolume(
+                 gdS,     // its solid
+                 gdMaterial,  // its material
+                 "gdLV");   // its name
+  
+  // placing the target - we use one of above logical volumes for this ( waterLV or gdLV )                                
   //new G4PVPlacement(
-  fWaterPV 
+  fTargetPV 
     = new G4PVPlacement(
                  0,                // no rotation
                  G4ThreeVector(),  // at (0,0,0)
-                 waterLV,          // its logical volume                         
-                 "WaterPV",    // its name
+                 gdLV,          // its logical volume          !!! change this to waterLV for the water target !!!                
+                 "TargetPV",    // its name
                  worldLV,          // its mother  volume
                  false,            // no boolean operation
                  0,                // copy number
                  fCheckOverlaps);  // checking overlaps 
-  
+ 
   //                                 
   // Layer
   //
@@ -278,9 +312,13 @@ G4VPhysicalVolume* DetectorConstruction::DefineVolumes()
   //
   worldLV->SetVisAttributes (G4VisAttributes::Invisible);
 
-  G4VisAttributes* simpleBoxVisAtt= new G4VisAttributes(G4Colour(0.0,0.5,1.0));
+  G4VisAttributes* simpleBoxVisAtt= new G4VisAttributes(G4Colour(0.0,0.5,1.0)); // blue
   simpleBoxVisAtt->SetVisibility(true);
   waterLV->SetVisAttributes(simpleBoxVisAtt);
+  
+  G4VisAttributes* simpleTargetVisAtt= new G4VisAttributes(G4Colour(0.0,1.0,0.0)); // green
+  simpleTargetVisAtt->SetVisibility(true);
+  gdLV->SetVisAttributes(simpleTargetVisAtt);
 
   //
   // Always return the physical World
