@@ -70,11 +70,13 @@ void SteppingAction::UserSteppingAction(const G4Step* step)
   G4VPhysicalVolume* secondVolume 
     = step->GetPostStepPoint()->GetTouchableHandle()->GetVolume();
   
+  G4Track* track = step->GetTrack();
+
   // energy deposit
   //G4double edep = step->GetTotalEnergyDeposit();
   G4double ekin = step->GetPreStepPoint()->GetKineticEnergy();
   G4double time = step->GetPreStepPoint()->GetGlobalTime();
-  G4String particleName = step->GetTrack()->GetParticleDefinition()->GetParticleName();
+  G4String particleName = track->GetParticleDefinition()->GetParticleName();
   G4int particle;
   if(particleName == "gamma")        particle = 1;
   else if(particleName == "proton")  particle = 2;
@@ -86,30 +88,46 @@ void SteppingAction::UserSteppingAction(const G4Step* step)
   else if(particleName == "O16")     particle = 8; 
   else particle = 0; 
 
-  G4Track* track = step->GetTrack();
-  if(particleName == "e-") track->SetTrackStatus(fKillTrackAndSecondaries);
+  //if(particleName == "e-") track->SetTrackStatus(fKillTrackAndSecondaries);
 
-  if( firstVolume == fDetConstruction->GetTargetPV() && secondVolume == fDetConstruction->GetWorldPV() ) {
+  // vertex
+  G4ThreeVector vertex = track->GetVertexPosition();
+
+  // particles leaving the box
+  if( firstVolume == fDetConstruction->GetBoxPV() && secondVolume == fDetConstruction->GetWorldPV() ) {
     G4AnalysisManager* analysisManager = G4AnalysisManager::Instance();
     analysisManager->FillNtupleDColumn(0, ekin/MeV);
     analysisManager->FillNtupleDColumn(1, time/ms);
     analysisManager->FillNtupleIColumn(2, particle);
+	 analysisManager->FillNtupleDColumn(3, vertex.x()/mm);
+	 analysisManager->FillNtupleDColumn(4, vertex.y()/mm);
+	 analysisManager->FillNtupleDColumn(5, vertex.z()/mm);
     analysisManager->AddNtupleRow();
   }
 
-  // step length
-  //G4double stepLength = 0.;
-  //if ( step->GetTrack()->GetDefinition()->GetPDGCharge() != 0. ) {
-  //  stepLength = step->GetStepLength();
-  //}
-      
-  //if ( volume == fDetConstruction->GetAbsorberPV() ) {
-  //  fEventAction->AddAbs(edep,stepLength);
-  //}
-  
-  //if ( volume == fDetConstruction->GetGapPV() ) {
-  //  fEventAction->AddGap(edep,stepLength);
-  //}
+  // particles entering the target
+  if( firstVolume == fDetConstruction->GetBoxPV() && secondVolume == fDetConstruction->GetTargetPV() ) {
+    G4AnalysisManager* analysisManager = G4AnalysisManager::Instance();
+    analysisManager->FillNtupleDColumn(0, ekin/MeV);
+    analysisManager->FillNtupleDColumn(1, time/ms);
+    analysisManager->FillNtupleIColumn(2, 10+particle);
+	 analysisManager->FillNtupleDColumn(3, vertex.x()/mm);
+	 analysisManager->FillNtupleDColumn(4, vertex.y()/mm);
+	 analysisManager->FillNtupleDColumn(5, vertex.z()/mm);
+    analysisManager->AddNtupleRow();
+  }
+
+  // particles leaving the target
+  if( firstVolume == fDetConstruction->GetTargetPV() && secondVolume == fDetConstruction->GetBoxPV() ) {
+    G4AnalysisManager* analysisManager = G4AnalysisManager::Instance();
+    analysisManager->FillNtupleDColumn(0, ekin/MeV);
+    analysisManager->FillNtupleDColumn(1, time/ms);
+    analysisManager->FillNtupleIColumn(2, 20+particle);
+	 analysisManager->FillNtupleDColumn(3, vertex.x()/mm);
+	 analysisManager->FillNtupleDColumn(4, vertex.y()/mm);
+	 analysisManager->FillNtupleDColumn(5, vertex.z()/mm);
+    analysisManager->AddNtupleRow();
+  }
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
