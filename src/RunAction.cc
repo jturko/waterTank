@@ -71,6 +71,9 @@ RunAction::RunAction()
   analysisManager->CreateNtupleDColumn("energy");
   analysisManager->CreateNtupleDColumn("time");
   analysisManager->CreateNtupleIColumn("particle");
+  analysisManager->CreateNtupleDColumn("vertex_x");
+  analysisManager->CreateNtupleDColumn("vertex_y");
+  analysisManager->CreateNtupleDColumn("vertex_z");
   analysisManager->FinishNtuple();
 }
 

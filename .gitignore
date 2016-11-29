@@ -1,0 +1,9 @@
+*.o
+*.so
+*.exe
+build*
+*.root
+~*
+*~
+*.swp
+.nfs*

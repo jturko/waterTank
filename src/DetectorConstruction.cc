@@ -55,11 +55,6 @@
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-G4ThreadLocal 
-G4GlobalMagFieldMessenger* DetectorConstruction::fMagFieldMessenger = 0; 
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
 DetectorConstruction::DetectorConstruction()
  : G4VUserDetectorConstruction(),
    //fAbsorberPV(0),
@@ -104,6 +99,18 @@ void DetectorConstruction::DefineMaterials()
   G4Material * Gd156_mat = new G4Material(name="Gd156_mat",density=7.90*g/cm3,ncomponents=1);
   Gd156_mat->AddElement(Gd156_el,fractionmass=100.*perCent);
 
+  G4Isotope * C12_iso = new G4Isotope(name="C12_iso",z=6,n=6,a=12.*g/mole);
+  G4Element * C12_el = new G4Element(name="C12_el",symbol="C12",ncomponents=1);
+  C12_el->AddIsotope(C12_iso,fractionmass=100.*perCent);
+  G4Material * C12_mat = new G4Material(name="C12_mat",density=7.90*g/cm3,ncomponents=1);
+  C12_mat->AddElement(C12_el,fractionmass=100.*perCent);
+
+  G4Isotope * Tc98_iso = new G4Isotope(name="Tc98_iso",z=43,n=98,a=98.*g/mole);
+  G4Element * Tc98_el = new G4Element(name="Tc98_el",symbol="Tc98",ncomponents=1);
+  Tc98_el->AddIsotope(Tc98_iso,fractionmass=100.*perCent);
+  G4Material * Tc98_mat = new G4Material(name="Tc98_mat",density=11.5*g/cm3,ncomponents=1);
+  Tc98_mat->AddElement(Tc98_el,fractionmass=100.*perCent);
+  
   G4Isotope * Eu152_iso = new G4Isotope(name="Eu152_iso",z=63,n=152,a=152.*g/mole);
   G4Element * Eu152_el = new G4Element(name="Eu152_el",symbol="Eu152",ncomponents=1);
   Eu152_el->AddIsotope(Eu152_iso,fractionmass=100.*perCent);
@@ -127,57 +134,42 @@ void DetectorConstruction::DefineMaterials()
 G4VPhysicalVolume* DetectorConstruction::DefineVolumes()
 {
   // Geometry parameters
-  //G4int nofLayers = 10;
-  //G4double absoThickness = 10.*mm;
-  //G4double gapThickness =  5.*mm;
-  //G4double calorSizeXY  = 10.*cm;
-
-  //G4double layerThickness = absoThickness + gapThickness;
-  //G4double calorThickness = nofLayers * layerThickness;
-  //G4double worldSizeXY = 1.2 * calorSizeXY;
-  //G4double worldSizeZ  = 1.2 * calorThickness; 
+  G4double boxSizeXY = 10.*cm;
+  G4double boxSizeZ = 30.*cm;
   
-  G4double waterSizeXY = 10.*cm;
-  G4double waterSizeZ = 20.*cm;
+  G4double targetSizeXY = 5.*mm;
+  G4double targetSizeZ = 10.*mm;
   
-  G4double gdSizeXY = 5.*mm;
-  G4double gdSizeZ = 100.*um;
-  
-  //G4double worldSizeXYZ = 1.2 * waterSizeZ;
-  G4double worldSizeXYZ = 1.2 * gdSizeXY;
+  G4double worldSizeXYZ = 1.2 * boxSizeZ;
 
   // Get materials
-  //G4Material* defaultMaterial = G4Material::GetMaterial("Galactic");
-  //G4Material* absorberMaterial = G4Material::GetMaterial("G4_Pb");
-  //G4Material* gapMaterial = G4Material::GetMaterial("liquidArgon");
   G4Material* airMaterial = G4Material::GetMaterial("G4_AIR");
-  G4Material* waterMaterial = G4Material::GetMaterial("G4_WATER");
-  G4Material* gdMaterial = G4Material::GetMaterial("Gd156_mat");
+  G4Material* boxMaterial = G4Material::GetMaterial("G4_WATER");
+  G4Material* tracerMaterial = G4Material::GetMaterial("Tc98_mat");
 
-  //if ( ! defaultMaterial || ! absorberMaterial || ! gapMaterial ) {
-  if ( ! airMaterial || ! waterMaterial || ! gdMaterial ) {
+  G4Material* targetMaterial = new G4Material("target_mat", boxMaterial->GetDensity(), 2);
+  double tracerConcentration = 10.*perCent;
+  targetMaterial->AddMaterial(tracerMaterial, tracerConcentration);
+  targetMaterial->AddMaterial(boxMaterial, 100.*perCent - tracerConcentration);
+
+  if( !airMaterial || !boxMaterial || !tracerMaterial ) {
     G4ExceptionDescription msg;
     msg << "Cannot retrieve materials already defined."; 
-    G4Exception("DetectorConstruction::DefineVolumes()",
-      "MyCode0001", FatalException, msg);
-  }  
+    G4Exception("DetectorConstruction::DefineVolumes()", "MyCode0001", FatalException, msg);
+  }
    
   //     
   // World
   //
-  G4VSolid* worldS 
-    = new G4Box("WorldS",           // its name
+  G4VSolid* worldS = new G4Box("WorldS",           // its name
                  worldSizeXYZ/2, worldSizeXYZ/2, worldSizeXYZ/2); // its size
                          
-  G4LogicalVolume* worldLV
-    = new G4LogicalVolume(
+  G4LogicalVolume* worldLV = new G4LogicalVolume(
                  worldS,           // its solid
                  airMaterial,      // its material
                  "WorldLV");       // its name
                                    
-  //G4VPhysicalVolume* worldPV
-  fWorldPV
-    = new G4PVPlacement(
+  fWorldPV = new G4PVPlacement(
                  0,                // no rotation
                  G4ThreeVector(),  // at (0,0,0)
                  worldLV,          // its logical volume                         
@@ -188,125 +180,48 @@ G4VPhysicalVolume* DetectorConstruction::DefineVolumes()
                  fCheckOverlaps);  // checking overlaps 
   
   //                               
-  // Water tank
+  // Box
   //  
-  G4VSolid* waterS
-    = new G4Box("WaterS",     // its name
-                 waterSizeXY/2, waterSizeXY/2, waterSizeZ/2); // its size
+  G4VSolid* boxS = new G4Box("BoxS",     // its name
+                 boxSizeXY/2, boxSizeXY/2, boxSizeZ/2); // its size
                          
-  G4LogicalVolume* waterLV
-    = new G4LogicalVolume(
-                 waterS,     // its solid
-                 waterMaterial,  // its material
-                 "WaterLV");   // its name
+  G4LogicalVolume* boxLV = new G4LogicalVolume(
+                 boxS,     // its solid
+                 boxMaterial,  // its material
+                 "BoxLV");   // its name
                                    
   //                               
-  // Gd156 target
+  // target
   //  
-  G4VSolid* gdS
-    = new G4Box("gdS",     // its name
-                 gdSizeXY/2, gdSizeXY/2, gdSizeZ/2); // its size
+  G4VSolid* targetS = new G4Box("TargetS",     // its name
+                 targetSizeXY/2, targetSizeXY/2, targetSizeZ/2); // its size
                          
-  G4LogicalVolume* gdLV
-    = new G4LogicalVolume(
-                 gdS,     // its solid
-                 gdMaterial,  // its material
-                 "gdLV");   // its name
+  G4LogicalVolume* targetLV = new G4LogicalVolume(
+                 targetS,     // its solid
+                 targetMaterial,  // its material
+                 "TargetLV");   // its name
   
-  // placing the target - we use one of above logical volumes for this ( waterLV or gdLV )                                
-  //new G4PVPlacement(
-  fTargetPV 
-    = new G4PVPlacement(
+  // placing the box in the world and then the target in the box
+  fBoxPV = new G4PVPlacement(
                  0,                // no rotation
                  G4ThreeVector(),  // at (0,0,0)
-                 gdLV,          // its logical volume          !!! change this to waterLV for the water target !!!                
-                 "TargetPV",    // its name
+                 boxLV,            // its logical volume
+                 "BoxPV",          // its name
                  worldLV,          // its mother  volume
                  false,            // no boolean operation
                  0,                // copy number
                  fCheckOverlaps);  // checking overlaps 
+
+  fTargetPV = new G4PVPlacement(
+                 0,                // no rotation
+                 G4ThreeVector(0*cm,0*cm,11.1*cm),  // at (0,0,0)
+                 targetLV,         // its logical volume
+                 "TargetPV",       // its name
+                 boxLV,            // its mother  volume
+                 false,            // no boolean operation
+                 0,                // copy number
+                 fCheckOverlaps);  // checking overlaps 
  
-  //                                 
-  // Layer
-  //
-  //G4VSolid* layerS 
-  //  = new G4Box("Layer",           // its name
-  //               calorSizeXY/2, calorSizeXY/2, layerThickness/2); // its size
-                         
-  //G4LogicalVolume* layerLV
-  //  = new G4LogicalVolume(
-  //               layerS,           // its solid
-  //               defaultMaterial,  // its material
-  //               "Layer");         // its name
-  //
-  //new G4PVReplica(
-  //               "Layer",          // its name
-  //               layerLV,          // its logical volume
-  //               calorLV,          // its mother
-  //               kZAxis,           // axis of replication
-  //               nofLayers,        // number of replica
-  //               layerThickness);  // witdth of replica
-  //
-  //                              
-  // Absorber
-  //
-  //G4VSolid* absorberS 
-  //  = new G4Box("Abso",            // its name
-  //               calorSizeXY/2, calorSizeXY/2, absoThickness/2); // its size
-  //                       
-  //G4LogicalVolume* absorberLV
-  //  = new G4LogicalVolume(
-  //               absorberS,        // its solid
-  //               absorberMaterial, // its material
-  //               "Abso");          // its name
-                                   
-  //fAbsorberPV
-  //  = new G4PVPlacement(
-  //               0,                // no rotation
-  //               G4ThreeVector(0., 0., -gapThickness/2), // its position
-  //               absorberLV,       // its logical volume                         
-  //               "Abso",           // its name
-  //               layerLV,          // its mother  volume
-  //               false,            // no boolean operation
-  //               0,                // copy number
-  //               fCheckOverlaps);  // checking overlaps 
-  //
-  //                               
-  // Gap
-  //
-  //G4VSolid* gapS 
-  //  = new G4Box("Gap",             // its name
-  //               calorSizeXY/2, calorSizeXY/2, gapThickness/2); // its size
-  //                       
-  //G4LogicalVolume* gapLV
-  //  = new G4LogicalVolume(
-  //               gapS,             // its solid
-  //               gapMaterial,      // its material
-  //               "Gap");           // its name
-  //                                 
-  //fGapPV
-  //  = new G4PVPlacement(
-  //               0,                // no rotation
-  //               G4ThreeVector(0., 0., absoThickness/2), // its position
-  //               gapLV,            // its logical volume                         
-  //               "Gap",            // its name
-  //               layerLV,          // its mother  volume
-  //               false,            // no boolean operation
-  //               0,                // copy number
-  //               fCheckOverlaps);  // checking overlaps 
-  
-  //
-  // print parameters
-  //
-  //G4cout
-  //  << G4endl 
-  //  << "------------------------------------------------------------" << G4endl
-  //  << "---> The calorimeter is " << nofLayers << " layers of: [ "
-  //  << absoThickness/mm << "mm of " << absorberMaterial->GetName() 
-  //  << " + "
-  //  << gapThickness/mm << "mm of " << gapMaterial->GetName() << " ] " << G4endl
-  //  << "------------------------------------------------------------" << G4endl;
-  //
   //                                        
   // Visualization attributes
   //
@@ -314,31 +229,16 @@ G4VPhysicalVolume* DetectorConstruction::DefineVolumes()
 
   G4VisAttributes* simpleBoxVisAtt= new G4VisAttributes(G4Colour(0.0,0.5,1.0)); // blue
   simpleBoxVisAtt->SetVisibility(true);
-  waterLV->SetVisAttributes(simpleBoxVisAtt);
+  boxLV->SetVisAttributes(simpleBoxVisAtt);
   
   G4VisAttributes* simpleTargetVisAtt= new G4VisAttributes(G4Colour(0.0,1.0,0.0)); // green
   simpleTargetVisAtt->SetVisibility(true);
-  gdLV->SetVisAttributes(simpleTargetVisAtt);
+  targetLV->SetVisAttributes(simpleTargetVisAtt);
 
   //
   // Always return the physical World
   //
   return fWorldPV;
-}
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
-void DetectorConstruction::ConstructSDandField()
-{ 
-  // Create global magnetic field messenger.
-  // Uniform magnetic field is then created automatically if
-  // the field value is not zero.
-  //G4ThreeVector fieldValue = G4ThreeVector();
-  //fMagFieldMessenger = new G4GlobalMagFieldMessenger(fieldValue);
-  //fMagFieldMessenger->SetVerboseLevel(1);
-  
-  // Register the field messenger for deleting
-  //G4AutoDelete::Register(fMagFieldMessenger);
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

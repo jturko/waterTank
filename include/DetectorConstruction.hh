@@ -38,18 +38,6 @@ class G4VPhysicalVolume;
 class G4GlobalMagFieldMessenger;
 
 /// Detector construction class to define materials and geometry.
-/// The calorimeter is a box made of a given number of layers. A layer consists
-/// of an absorber plate and of a detection gap. The layer is replicated.
-///
-/// Four parameters define the geometry of the calorimeter :
-///
-/// - the thickness of an absorber plate,
-/// - the thickness of a gap,
-/// - the number of layers,
-/// - the transverse size of the calorimeter (the input face is a square).
-///
-/// In addition a transverse uniform magnetic field is defined 
-/// via G4GlobalMagFieldMessenger class.
 
 class DetectorConstruction : public G4VUserDetectorConstruction
 {
@@ -59,12 +47,12 @@ class DetectorConstruction : public G4VUserDetectorConstruction
 
   public:
     virtual G4VPhysicalVolume* Construct();
-    virtual void ConstructSDandField();
 
     // get methods
     //
-    const G4VPhysicalVolume* GetWorldPV() const;
-    const G4VPhysicalVolume* GetTargetPV() const;
+    const G4VPhysicalVolume* GetWorldPV() const { return fWorldPV; }
+    const G4VPhysicalVolume* GetTargetPV() const { return fTargetPV; }
+    const G4VPhysicalVolume* GetBoxPV() const { return fBoxPV; }
      
   private:
     // methods
@@ -74,25 +62,13 @@ class DetectorConstruction : public G4VUserDetectorConstruction
   
     // data members
     //
-    static G4ThreadLocal G4GlobalMagFieldMessenger*  fMagFieldMessenger; 
-                                      // magnetic field messenger
      
     G4VPhysicalVolume*   fWorldPV;  // the world physical volume
+    G4VPhysicalVolume*   fBoxPV;    // the main physical volume (box)
     G4VPhysicalVolume*   fTargetPV; // the target physical volume
     
     G4bool  fCheckOverlaps; // option to activate checking of volumes overlaps
 };
-
-// inline functions
-
-inline const G4VPhysicalVolume* DetectorConstruction::GetWorldPV() const { 
-  return fWorldPV; 
-}
-
-inline const G4VPhysicalVolume* DetectorConstruction::GetTargetPV() const  { 
-  return fTargetPV; 
-}
-     
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 

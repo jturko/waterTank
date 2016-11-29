@@ -40,6 +40,7 @@
 #include "G4UImanager.hh"
 #include "G4UIcommand.hh"
 #include "FTFP_BERT.hh"
+#include "QGSP_BIC.hh"
 
 #include "Randomize.hh"
 
@@ -114,7 +115,8 @@ int main(int argc,char** argv)
   DetectorConstruction* detConstruction = new DetectorConstruction();
   runManager->SetUserInitialization(detConstruction);
 
-  G4VModularPhysicsList* physicsList = new FTFP_BERT;
+  //G4VModularPhysicsList* physicsList = new FTFP_BERT;
+  G4VModularPhysicsList* physicsList = new QGSP_BIC;
   runManager->SetUserInitialization(physicsList);
     
   ActionInitialization* actionInitialization
