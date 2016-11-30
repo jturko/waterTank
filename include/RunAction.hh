@@ -62,6 +62,44 @@ class RunAction : public G4UserRunAction
 
     virtual void BeginOfRunAction(const G4Run*);
     virtual void   EndOfRunAction(const G4Run*);
+
+	 void Add(G4double energy, G4double time, G4int particle, G4double vertex_x, G4double vertex_y, G4double vertex_z, G4double pos_x, G4double pos_y, G4double pos_z, G4int trackId) {
+		 fEnergy.push_back(energy);
+		 fTime.push_back(time);
+		 fParticle.push_back(particle);
+		 fVertexX.push_back(vertex_x);
+		 fVertexY.push_back(vertex_y);
+		 fVertexZ.push_back(vertex_z);
+		 fPosX.push_back(pos_x);
+		 fPosY.push_back(pos_y);
+		 fPosZ.push_back(pos_z);
+		 fTrackId.push_back(trackId);
+	 }
+
+	 void Clear() {
+		 fEnergy.clear();
+		 fTime.clear();
+		 fParticle.clear();
+		 fVertexX.clear();
+		 fVertexY.clear();
+		 fVertexZ.clear();
+		 fPosX.clear();
+		 fPosY.clear();
+		 fPosZ.clear();
+		 fTrackId.clear();
+	 }
+
+  private:
+	 std::vector<G4double> fEnergy;
+	 std::vector<G4double> fTime;
+	 std::vector<G4int>    fParticle;
+	 std::vector<G4double> fVertexX;
+	 std::vector<G4double> fVertexY;
+	 std::vector<G4double> fVertexZ;
+	 std::vector<G4double> fPosX;
+	 std::vector<G4double> fPosY;
+	 std::vector<G4double> fPosZ;
+	 std::vector<G4int>    fTrackId;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

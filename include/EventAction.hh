@@ -34,45 +34,29 @@
 #include "G4UserEventAction.hh"
 #include "globals.hh"
 
+#include "RunAction.hh"
+
 /// Event action class
-///
-/// It defines data members to hold the energy deposit and track lengths
-/// of charged particles in Absober and Gap layers:
-/// - fEnergyAbs, fEnergyGap, fTrackLAbs, fTrackLGap
-/// which are collected step by step via the functions
-/// - AddAbs(), AddGap()
 
 class EventAction : public G4UserEventAction
 {
   public:
-    EventAction();
+    EventAction(RunAction*);
     virtual ~EventAction();
 
     virtual void  BeginOfEventAction(const G4Event* event);
     virtual void    EndOfEventAction(const G4Event* event);
     
-    //void AddAbs(G4double de, G4double dl);
-    //void AddGap(G4double de, G4double dl);
-    
+	 void Add(G4double energy, G4double time, G4int particle, G4double vertex_x, G4double vertex_y, G4double vertex_z, G4double pos_x, G4double pos_y, G4double pos_z, G4int trackId) {
+		 fRunAction->Add(energy, time, particle, vertex_x, vertex_y, vertex_z, pos_x, pos_y, pos_z, trackId);
+	 }
+	 void Clear() {
+		 fRunAction->Clear();
+	 }
   private:
-    //G4double  fEnergyAbs;
-    //G4double  fEnergyGap;
-    //G4double  fTrackLAbs; 
-    //G4double  fTrackLGap;
+	 RunAction* fRunAction;
 };
 
-// inline functions
-
-//inline void B4aEventAction::AddAbs(G4double de, G4double dl) {
-//  fEnergyAbs += de; 
-//  fTrackLAbs += dl;
-//}
-
-//inline void B4aEventAction::AddGap(G4double de, G4double dl) {
-//  fEnergyGap += de; 
-//  fTrackLGap += dl;
-//}
-                     
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #endif

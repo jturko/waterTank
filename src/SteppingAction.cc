@@ -90,43 +90,23 @@ void SteppingAction::UserSteppingAction(const G4Step* step)
 
   //if(particleName == "e-") track->SetTrackStatus(fKillTrackAndSecondaries);
 
-  // vertex
+  // position where the particle is and the vertex of its track
+  G4ThreeVector pos = step->GetPreStepPoint()->GetPosition();
   G4ThreeVector vertex = track->GetVertexPosition();
 
   // particles leaving the box
   if( firstVolume == fDetConstruction->GetBoxPV() && secondVolume == fDetConstruction->GetWorldPV() ) {
-    G4AnalysisManager* analysisManager = G4AnalysisManager::Instance();
-    analysisManager->FillNtupleDColumn(0, ekin/MeV);
-    analysisManager->FillNtupleDColumn(1, time/ms);
-    analysisManager->FillNtupleIColumn(2, particle);
-	 analysisManager->FillNtupleDColumn(3, vertex.x()/mm);
-	 analysisManager->FillNtupleDColumn(4, vertex.y()/mm);
-	 analysisManager->FillNtupleDColumn(5, vertex.z()/mm);
-    analysisManager->AddNtupleRow();
+	  fEventAction->Add(ekin/MeV, time/ns, particle, vertex.x()/mm, vertex.y()/mm, vertex.z()/mm, pos.x()/mm, pos.y()/mm, pos.z()/mm, track->GetTrackID());
   }
 
   // particles entering the target
   if( firstVolume == fDetConstruction->GetBoxPV() && secondVolume == fDetConstruction->GetTargetPV() ) {
-    G4AnalysisManager* analysisManager = G4AnalysisManager::Instance();
-    analysisManager->FillNtupleDColumn(0, ekin/MeV);
-    analysisManager->FillNtupleDColumn(1, time/ms);
-    analysisManager->FillNtupleIColumn(2, 10+particle);
-	 analysisManager->FillNtupleDColumn(3, vertex.x()/mm);
-	 analysisManager->FillNtupleDColumn(4, vertex.y()/mm);
-	 analysisManager->FillNtupleDColumn(5, vertex.z()/mm);
-    analysisManager->AddNtupleRow();
+	  fEventAction->Add(ekin/MeV, time/ns, 10+particle, vertex.x()/mm, vertex.y()/mm, vertex.z()/mm, pos.x()/mm, pos.y()/mm, pos.z()/mm, track->GetTrackID());
   }
 
   // particles leaving the target
   if( firstVolume == fDetConstruction->GetTargetPV() && secondVolume == fDetConstruction->GetBoxPV() ) {
-    G4AnalysisManager* analysisManager = G4AnalysisManager::Instance();
-    analysisManager->FillNtupleDColumn(0, ekin/MeV);
-    analysisManager->FillNtupleDColumn(1, time/ms);
-    analysisManager->FillNtupleIColumn(2, 20+particle);
-	 analysisManager->FillNtupleDColumn(3, vertex.x()/mm);
-	 analysisManager->FillNtupleDColumn(4, vertex.y()/mm);
-	 analysisManager->FillNtupleDColumn(5, vertex.z()/mm);
-    analysisManager->AddNtupleRow();
+	  fEventAction->Add(ekin/MeV, time/ns, 20+particle, vertex.x()/mm, vertex.y()/mm, vertex.z()/mm, pos.x()/mm, pos.y()/mm, pos.z()/mm, track->GetTrackID());
   }
 }
 
