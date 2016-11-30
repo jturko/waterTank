@@ -148,7 +148,7 @@ G4VPhysicalVolume* DetectorConstruction::DefineVolumes()
   G4Material* tracerMaterial = G4Material::GetMaterial("Tc98_mat");
 
   G4Material* targetMaterial = new G4Material("target_mat", boxMaterial->GetDensity(), 2);
-  double tracerConcentration = 10.*perCent;
+  double tracerConcentration = 90.*perCent;
   targetMaterial->AddMaterial(tracerMaterial, tracerConcentration);
   targetMaterial->AddMaterial(boxMaterial, 100.*perCent - tracerConcentration);
 
